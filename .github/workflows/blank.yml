@@ -48,11 +48,20 @@ jobs:
                 -d "{\"name\":\"$REPO_NAME\",\"private\":true}"
             fi
 
-            # Mirror push
+            # Clone *all branches + tags*
             git clone --mirror https://github:${{ secrets.BACKUP_TOKEN }}@github.com/$MAIN_ORG/$REPO_NAME.git
             cd $REPO_NAME.git
+
+            # Add backup remote
             git remote add backup https://github:${{ secrets.BACKUP_TOKEN }}@github.com/$BACKUP_ORG/$REPO_NAME.git
+
+            # Fetch everything explicitly (branches + tags + notes)
+            git fetch --all --tags
+
+            # Push everything (branches + tags + refs)
             git push --mirror backup || echo "⚠️ Failed to push $REPO_NAME"
+
             cd ..
             rm -rf $REPO_NAME.git
           done < repo_list.txt
+
